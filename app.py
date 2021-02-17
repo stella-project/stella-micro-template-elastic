@@ -1,11 +1,9 @@
 from flask import Flask, request, jsonify, redirect
 from systems import Ranker, Recommender
 
-
 app = Flask(__name__)
 ranker = Ranker()
 recommender = Recommender()
-
 
 @app.route('/')
 def redirect_to_test():
@@ -31,6 +29,7 @@ def ranking():
     rpp = request.args.get('rpp', default=20, type=int)
     response = ranker.rank_publications(query, page, rpp)
     return jsonify(response)
+
 
 
 @app.route('/recommendation/datasets', methods=["GET"])

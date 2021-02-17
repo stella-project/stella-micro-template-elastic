@@ -4,14 +4,10 @@ ENV discovery.type=single-node
 
 USER root
 
-
-FROM python:3.7
-
 COPY requirements.txt requirements.txt
-COPY . .
 
-RUN pip3 install -r requirements.txt
+RUN yum install -y https://repo.ius.io/ius-release-el7.rpm && yum -y update && yum install -y python36u python36u-libs python36u-devel python36u-pip && pip3 install -r requirements.txt
 
-EXPOSE 5000
-
-ENTRYPOINT python3 app.py
+COPY ./app.py /app.py
+COPY ./systems.py /systems.py
+RUN sed -i -e '2inohup python3 /app.py &\' /usr/local/bin/docker-entrypoint.sh

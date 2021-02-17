@@ -4,25 +4,31 @@ import json
 import os
 import ast
 
-PATH = '/data/index'
+
 
 class Ranker(object):
 
     def __init__(self):
-        self.idx = None
+        self.INDEX = 'test-index'
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+        self.PATH = './basedata/livivo/documents'
+
+
+    def test(self):
+        return self.es.info(), 200
 
     def index(self):
         docs = 0
 
-        for file in os.listdir(PATH):
+        for file in os.listdir(self.PATH):
             if file.endswith(".jsonl"):
-                with open(os.path.join(PATH, file), 'r', encoding="utf-8") as f:
+                with open(os.path.join(self.PATH, file), 'r', encoding="utf-8") as f:
                     for line in f:
                         try:
                             doc = ast.literal_eval(line)
-                            self.es.index(index=INDEX, doc_type=doc['type'], id=doc['id'], body=doc)
+                            self.es.index(index=self.INDEX, doc_type=doc['type'], id=doc['id'], body=doc)
                             docs += 1
+                            print(doc['id'])
                         except:
                             pass
 
@@ -31,19 +37,20 @@ class Ranker(object):
     def rank_publications(self, query, page, rpp):
 
         itemlist = []
+        start = page * rpp
 
         if (query is not None):
 
             es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
-            result = es.search(index=INDEX,
+            result = es.search(index=self.INDEX,
                                from_=start,
                                size=rpp,
                                body={"query": {"query_string": {"query": query, "default_field": "*"}}})
 
             for res in result["hits"]["hits"]:
                 try:
-                    response['itemlist'].append(res['_source']['id'])
+                    itemlist.append(res['_source']['id'])
                 except:
                     pass
 
