@@ -1,1 +1,1 @@
-# -stella-micro-template-elastic
+# stella-micro-template-elastic
