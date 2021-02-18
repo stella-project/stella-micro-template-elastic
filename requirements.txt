@@ -1,3 +1,4 @@
 elasticsearch
 elasticsearch-dsl
 flask
+jsonlines
