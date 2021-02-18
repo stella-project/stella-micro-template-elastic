@@ -1,34 +1,31 @@
 from flask import request, jsonify
 from elasticsearch import Elasticsearch
 import json
+import jsonlines
 import os
 import ast
-
 
 
 class Ranker(object):
 
     def __init__(self):
-        self.INDEX = 'test-index'
+        self.INDEX = 'idx'
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
-        self.PATH = './basedata/livivo/documents'
-
+        self.PATH = './data/livivo/documents'
 
     def test(self):
         return self.es.info(), 200
 
     def index(self):
         docs = 0
-
-        for file in os.listdir(self.PATH):
+        for file in os.listdir("./data/livivo/documents/"):
             if file.endswith(".jsonl"):
-                with open(os.path.join(self.PATH, file), 'r', encoding="utf-8") as f:
-                    for line in f:
+                with jsonlines.open(os.path.join("./data/livivo/documents", file)) as reader:
+                    for obj in reader:
                         try:
-                            doc = ast.literal_eval(line)
-                            self.es.index(index=self.INDEX, doc_type=doc['type'], id=doc['id'], body=doc)
+                            _id = obj.get('DBRECORDID')
+                            self.es.index(index=self.INDEX, doc_type='PUB', id=_id, body=obj)
                             docs += 1
-                            print(doc['id'])
                         except:
                             pass
 
