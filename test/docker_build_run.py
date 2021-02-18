@@ -14,10 +14,9 @@ def build():
 
 def run():
     client.containers.run(img_tag,
-                          ports={'5000/tcp': 5000},
+                          ports={'5000/tcp': 5000, '9200/tcp': 9200},
                           name=container_name,
-                          detach=True,
-                          volumes={'/data/': {'bind': ':/usr/share/elasticsearch/basedata', 'mode': 'r'},}
+                          detach=True
                           )
     print('Container is running.')
 
