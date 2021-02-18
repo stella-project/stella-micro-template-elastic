@@ -43,11 +43,11 @@ class Ranker(object):
             result = es.search(index=self.INDEX,
                                from_=start,
                                size=rpp,
-                               body={"query": {"query_string": {"query": query, "default_field": "*"}}})
+                               body={"query": {"multi_match": {"query": query, "fields": ["TITLE", 'ABSTRACT']}}})
 
             for res in result["hits"]["hits"]:
                 try:
-                    itemlist.append(res['_source']['id'])
+                    itemlist.append(res['_source']['DBRECORDID'])
                 except:
                     pass
 
