@@ -11,3 +11,13 @@ Tech-savvy participants should be able to integrate their own search systems wit
 - [x] Rankings based on Elasticsearch
 - [ ] Config-Template for different search configurations
 - [ ] Recommendations based on Elasticsearch 
+
+# Want to contribute? Here's a 'How to set it up'
+
+0. Install python and docker
+1. Clone this repository
+2. Install all requirements (there's an additional `requirements.txt` in the `test/` folder)
+3. Download the data (e.g. [this file]() and place it in `data/livivo/documents/`)
+4. Run `test/docker_build_run.py`
+5. Index the data by calling `http://0.0.0.0:5000/index`
+6. Query the system by `http://0.0.0.0:5000/search?query=agriculture`
