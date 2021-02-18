@@ -17,7 +17,7 @@ Tech-savvy participants should be able to integrate their own search systems wit
 0. Install python and docker
 1. Clone this repository
 2. Install all requirements (there's an additional `requirements.txt` in the `test/` folder)
-3. Download the data (e.g. [this file]() and place it in `data/livivo/documents/`)
+3. Download the data (e.g. [this file](https://th-koeln.sciebo.de/s/OBm0NLEwz1RYl9N/download?path=%2Flivivo%2Fdocuments&files=livivo_testset.jsonl) and place it in `data/livivo/documents/`)
 4. Run `test/docker_build_run.py`
 5. Index the data by calling `http://0.0.0.0:5000/index`
 6. Query the system by `http://0.0.0.0:5000/search?query=agriculture`
