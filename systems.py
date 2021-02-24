@@ -1,15 +1,16 @@
-import jsonlines
 import os
-from elasticsearch import Elasticsearch
-from elasticsearch import helpers
+import json
+import jsonlines
+from elasticsearch import Elasticsearch, helpers
 
 
 class Ranker(object):
 
     def __init__(self):
-        self.INDEX = 'idx'
+        self.index = 'idx'
+        self.index_settings_path = 'index_settings.json'
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
-        self.PATH = './data/livivo/documents'
+        self.documents_path = './data/livivo/documents'
 
     def test(self):
         return self.es.info(), 200
@@ -23,21 +24,22 @@ class Ranker(object):
                     for obj in reader:
                         yield {
                             '_op_type': 'index',
-                            '_index': self.INDEX,
+                            '_index': self.index,
                             '_type': 'record',
                             '_id': obj['DBRECORDID'],
-                            '_source': obj,
-                        }
+                            '_source': obj}
 
     def index(self):
-        docs = 0
-        path = "./data/livivo/documents/"
+        with open(self.index_settings_path) as json_file:
+            index_settings = json.load(json_file)
 
-        for success, info in helpers.parallel_bulk(self.es, self.load_json(path), index=self.INDEX):
+        self.es.create(self.index, index_settings)
+
+        for success, info in helpers.parallel_bulk(self.es, self.load_json(self.documents_path), index=self.index):
             if not success:
-                print('A document failed:', info)
+                return 'A document failed: ' + info, 400
 
-        return 'Index built with ' + str(docs) + ' docs', 200
+        return 'Index built with ' + ' docs', 200
 
     def rank_publications(self, query, page, rpp):
 
@@ -48,7 +50,7 @@ class Ranker(object):
 
             es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
-            result = es.search(index=self.INDEX,
+            result = es.search(index=self.index,
                                from_=start,
                                size=rpp,
                                body={"query": {"multi_match": {"query": query, "fields": ["TITLE", 'ABSTRACT']}}})
