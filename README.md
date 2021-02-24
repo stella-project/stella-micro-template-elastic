@@ -11,7 +11,7 @@ Tech-savvy participants should be able to integrate their own search systems wit
 - [x] Rankings based on Elasticsearch
 - [ ] Config-Template for different search configurations (cf. [Similarity module](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules-similarity.html))
 - [ ] Bulk indexing (maybe [this](https://github.com/irgroup/trec-covid/blob/master/scripts/core/elastic.py) helps as starting point)
-- [ ] Recommendations based on Elasticsearch 
+- [ ] Recommendations based on Elasticsearch (cf. to [this](https://github.com/stella-project/gesis_rec_pyserini/blob/master/systems.py))
 
 ## Want to contribute? Here's a 'How to set it up'
 
