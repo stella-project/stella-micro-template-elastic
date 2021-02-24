@@ -1,9 +1,7 @@
-from flask import request, jsonify
-from elasticsearch import Elasticsearch
-import json
 import jsonlines
 import os
-import ast
+from elasticsearch import Elasticsearch
+from elasticsearch import helpers
 
 
 class Ranker(object):
@@ -16,18 +14,28 @@ class Ranker(object):
     def test(self):
         return self.es.info(), 200
 
+    def load_json(self, directory):
+        for path, subdir, file in os.walk(directory):
+            extensions = tuple([".jsonl"])
+            files = [f for f in file if f.endswith(extensions)]
+            for f in files:
+                with jsonlines.open(os.path.join(path, f), 'r') as reader:
+                    for obj in reader:
+                        yield {
+                            '_op_type': 'index',
+                            '_index': self.INDEX,
+                            '_type': 'record',
+                            '_id': obj['DBRECORDID'],
+                            '_source': obj,
+                        }
+
     def index(self):
         docs = 0
-        for file in os.listdir("./data/livivo/documents/"):
-            if file.endswith(".jsonl"):
-                with jsonlines.open(os.path.join("./data/livivo/documents", file)) as reader:
-                    for obj in reader:
-                        try:
-                            _id = obj.get('DBRECORDID')
-                            self.es.index(index=self.INDEX, doc_type='PUB', id=_id, body=obj)
-                            docs += 1
-                        except:
-                            pass
+        path = "./data/livivo/documents/"
+
+        for success, info in helpers.parallel_bulk(self.es, self.load_json(path), index=self.INDEX):
+            if not success:
+                print('A document failed:', info)
 
         return 'Index built with ' + str(docs) + ' docs', 200
 
@@ -69,7 +77,6 @@ class Recommender(object):
         pass
 
     def recommend_datasets(self, item_id, page, rpp):
-
         itemlist = []
 
         return {
@@ -81,7 +88,6 @@ class Recommender(object):
         }
 
     def recommend_publications(self, item_id, page, rpp):
-
         itemlist = []
 
         return {
