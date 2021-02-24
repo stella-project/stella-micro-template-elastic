@@ -9,7 +9,8 @@ Tech-savvy participants should be able to integrate their own search systems wit
 ## Todos
 
 - [x] Rankings based on Elasticsearch
-- [ ] Config-Template for different search configurations
+- [ ] Config-Template for different search configurations (cf. [Similarity module](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules-similarity.html))
+- [ ] Bulk indexing (maybe [this](https://github.com/irgroup/trec-covid/blob/master/scripts/core/elastic.py) helps as starting point)
 - [ ] Recommendations based on Elasticsearch 
 
 ## Want to contribute? Here's a 'How to set it up'
