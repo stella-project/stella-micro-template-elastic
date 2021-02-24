@@ -7,7 +7,7 @@ from elasticsearch import Elasticsearch, helpers
 class Ranker(object):
 
     def __init__(self):
-        self.index = 'idx'
+        self.INDEX = 'idx'
         self.index_settings_path = 'index_settings.json'
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
         self.documents_path = './data/livivo/documents'
@@ -24,18 +24,18 @@ class Ranker(object):
                     for obj in reader:
                         yield {
                             '_op_type': 'index',
-                            '_index': self.index,
+                            '_index': self.INDEX,
                             '_type': 'record',
                             '_id': obj['DBRECORDID'],
                             '_source': obj}
 
     def index(self):
-        with open(self.index_settings_path) as json_file:
-            index_settings = json.load(json_file)
+        # with open(self.index_settings_path) as json_file:
+        #     index_settings = json.load(json_file)
+        #
+        # self.es.create(index=self.INDEX, body=index_settings, id=0)
 
-        self.es.create(self.index, index_settings)
-
-        for success, info in helpers.parallel_bulk(self.es, self.load_json(self.documents_path), index=self.index):
+        for success, info in helpers.parallel_bulk(self.es, self.load_json(self.documents_path), index=self.INDEX):
             if not success:
                 return 'A document failed: ' + info, 400
 
@@ -50,7 +50,7 @@ class Ranker(object):
 
             es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
-            result = es.search(index=self.index,
+            result = es.search(index=self.INDEX,
                                from_=start,
                                size=rpp,
                                body={"query": {"multi_match": {"query": query, "fields": ["TITLE", 'ABSTRACT']}}})
