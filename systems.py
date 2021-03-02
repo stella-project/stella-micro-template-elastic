@@ -17,6 +17,11 @@ def load_json(directory, id_field):
                         '_source': obj}
 
 
+def load_settings(settings_path):
+    with open(settings_path) as json_file:
+        return json.load(json_file)
+
+
 class Ranker(object):
 
     def __init__(self):
@@ -29,10 +34,7 @@ class Ranker(object):
         return self.es.info(), 200
 
     def index(self):
-        with open(self.index_settings_path) as json_file:
-            index_settings = json.load(json_file)
-
-        self.es.indices.create(index=self.INDEX, body=index_settings)
+        self.es.indices.create(index=self.INDEX, body=load_settings(self.index_settings_path))
 
         for success, info in helpers.parallel_bulk(self.es, load_json(self.documents_path, 'DBRECORDID'),
                                                    index=self.INDEX):
@@ -46,7 +48,7 @@ class Ranker(object):
         itemlist = []
         start = page * rpp
 
-        if (query is not None):
+        if query is not None:
 
             es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
@@ -84,13 +86,8 @@ class Recommender(object):
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
     def index(self):
-        with open(self.index_documents_settings_path) as json_file:
-            index_settings = json.load(json_file)
-        self.es.indices.create(index=self.index_documents, body=index_settings)
-
-        with open(self.index_datasets_settings_path) as json_file:
-            index_settings = json.load(json_file)
-        self.es.indices.create(index=self.index_datasets, body=index_settings)
+        self.es.indices.create(index=self.index_documents, body=load_settings(self.index_documents_settings_path))
+        self.es.indices.create(index=self.index_datasets, body=load_settings(self.index_documents_settings_path))
 
         for success, info in helpers.parallel_bulk(self.es,
                                                    load_json(self.documents_path,
@@ -104,10 +101,37 @@ class Recommender(object):
             if not success:
                 return 'A document failed: ' + info, 400
 
-        return 'Index built with ' + ' docs', 200
+        return 'Indices built', 200
 
     def recommend_datasets(self, item_id, page, rpp):
         itemlist = []
+
+        start = page * rpp
+
+        if item_id is not None:
+
+            es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+
+            result = es.search(index=self.index_documents,
+                               from_=start,
+                               size=rpp,
+                               body={"query": {"multi_match": {"query": item_id, "fields": ["id"]}}})
+
+            if result["hits"]["hits"]:
+                title = result["hits"]["hits"][0]['_source']['title']
+                es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+
+                result = es.search(index=self.index_datasets,
+                                   from_=start,
+                                   size=rpp,
+                                   body={"query": {"multi_match": {"query": title, "fields": ["title", 'abstract']}}})
+
+
+            for res in result["hits"]["hits"]:
+                try:
+                    itemlist.append(res['_source']['id'])
+                except:
+                    pass
 
         return {
             'page': page,
