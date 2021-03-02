@@ -8,8 +8,7 @@ class Ranker(object):
 
     def __init__(self):
         self.INDEX = 'idx'
-        self.index_settings_path = os.path.join('index_settings', 'settings_default.json')
-        self.index_mappings_path = os.path.join('index_settings', 'mapping_default.json')
+        self.index_settings_path = os.path.join('index_settings', 'livivo_settings.json')
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
         self.documents_path = './data/livivo/documents'
 
@@ -33,12 +32,7 @@ class Ranker(object):
         with open(self.index_settings_path) as json_file:
             index_settings = json.load(json_file)
 
-        with open(self.index_mappings_path) as json_file:
-            index_mappings = json.load(json_file)
-
-        body = {"settings": index_settings, "mappings": index_mappings}
-
-        self.es.indices.create(index=self.INDEX, body=body)
+        self.es.indices.create(index=self.INDEX, body=index_settings)
 
         for success, info in helpers.parallel_bulk(self.es, self.load_json(self.documents_path), index=self.INDEX):
             if not success:
