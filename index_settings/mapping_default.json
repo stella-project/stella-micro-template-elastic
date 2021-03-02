@@ -1,0 +1,8 @@
+{
+    "properties": {
+      "field": {
+        "type": "text",
+        "similarity": "scripted_tfidf"
+      }
+    }
+  }
