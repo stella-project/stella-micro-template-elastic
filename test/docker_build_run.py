@@ -16,7 +16,8 @@ def run():
     client.containers.run(img_tag,
                           ports={'5000/tcp': 5000, '9200/tcp': 9200},
                           name=container_name,
-                          detach=True
+                          detach=True,
+                          volumes={'esdata': {'bind': '/usr/share/elasticsearch/index/', 'mode': 'rw'}}
                           )
     print('Container is running.')
 
