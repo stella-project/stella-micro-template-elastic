@@ -17,7 +17,8 @@ def run():
                           ports={'5000/tcp': 5000, '9200/tcp': 9200},
                           name=container_name,
                           detach=True,
-                          volumes={'esdata': {'bind': '/usr/share/elasticsearch/index/', 'mode': 'rw'}}
+                          volumes={'/path/to/host/data/': {'bind': '/data/', 'mode': 'rw'},
+                                   '/path/to/host/index/':{'bind': '/index/', 'mode': 'rw'}}
                           )
     print('Container is running.')
 
