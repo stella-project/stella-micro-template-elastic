@@ -5,12 +5,14 @@ from elasticsearch import Elasticsearch, helpers
 
 
 def load_json(directory, id_field):
+    print("test: load json")
     for path, subdir, file in os.walk(directory):
         extensions = tuple([".jsonl"])
         files = [f for f in file if f.endswith(extensions)]
         for f in files:
             with jsonlines.open(os.path.join(path, f), 'r') as reader:
                 for obj in reader:
+                    print("test: loadjson2")   
                     yield {
                         '_op_type': 'index',
                         '_id': obj[id_field],
@@ -18,15 +20,17 @@ def load_json(directory, id_field):
 
 
 def load_settings(settings_path):
+    print("test: loadsettings")
     with open(settings_path) as json_file:
         return json.load(json_file)
 
 
 class Ranker(object):
-
+    print("test: start ranker")
     def __init__(self):
+        print("test: pathsettings")
         self.INDEX = 'idx'
-        self.index_settings_path = os.path.join('index_settings', 'livivo_settings.json')
+        self.index_settings_path = os.path.join('index_settings', 'test_settings.json')
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
         self.documents_path = './data/livivo/documents'
 
@@ -34,20 +38,32 @@ class Ranker(object):
         return self.es.info(), 200
 
     def index(self):
+        print("test: index creation")
+        if self.es.indices.exists(self.INDEX):
+            self.es.indices.delete(index=self.INDEX)
         self.es.indices.create(index=self.INDEX, body=load_settings(self.index_settings_path))
 
         for success, info in helpers.parallel_bulk(self.es, load_json(self.documents_path, 'DBRECORDID'),
                                                    index=self.INDEX):
             if not success:
                 return 'A document failed: ' + info, 400
-
+        '''
+        for filename in os.listdir(self.documents_path):
+            if filename.endswith('.jsonl'):
+                fullpath=os.path.join(self.documents_path, filename)
+                print("Inserting file ->", filename)
+                with open(fullpath, "r", encoding="utf8") as open_file:
+                    reader = jsonlines.Reader(open_file)
+                    #json_docs.append(jsonlines.Reader(open_file))
+                    helpers.bulk(self.es, reader, ignore = 400,index=self.INDEX, raise_on_error=False, stats_only=False)
+        '''
         return 'Index built with ' + ' docs', 200
 
     def rank_publications(self, query, page, rpp):
 
         itemlist = []
         start = page * rpp
-
+        print("test: query index")
         if query is not None:
 
             es = Elasticsearch([{'host': 'localhost', 'port': 9200}])

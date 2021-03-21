@@ -9,9 +9,8 @@
     "DFR_similarity": {
       "type": "DFR",
       "basic_model": "g",
-      "after_effect": "l",
-      "normalization": "h2",
-      "normalization.h2.c": "3.0"
+      "after_effect": "b",
+      "normalization": "z"
     },
     "DFI_similarity": {
       "type": "DFI",
@@ -28,9 +27,13 @@
       "type": "LMDirichlet",
       "mu": 2000
     },
-    "LMJelinekMercer_similarity": {
+    "LMJelinekMercer_short": {
       "type": "LMJelinekMercer",
-      "lambda": 0.1
+      "lambda": "0.1"
+    },
+   "LMJelinekMercer_long": {
+      "type": "LMJelinekMercer",
+      "lambda": "0.7"
     },
     "scripted_similarity": {
       "type": "scripted",
