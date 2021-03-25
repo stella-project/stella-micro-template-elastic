@@ -8,7 +8,7 @@ client = docker.from_env(timeout=86400)
 
 
 def build():
-    client.images.build(path="../", tag=img_tag)
+    client.images.build(path="../", tag=img_tag, rm=True)
     print('Container is built.')
 
 
