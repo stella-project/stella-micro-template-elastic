@@ -1,13 +1,13 @@
-#Agenda:
+# Agenda:
 - Elasticsearch csv einlesen / CSV to JSON transform
-###Index
+### Index
 - Multilanguage ingestion 
 	-https://towardsdatascience.com/designing-an-optimal-multi-language-search-engine-with-elasticsearch-3d2de1b9636d
 	- Approach #3
-###Query
+### Query
 - Mesh.ipynb > Apply on Query > Expand with meshterms + meshterm synonyms in systems.py>Ranker>rank_publication
 	- Disorder Term adds unnecesary synonyms
-### Translation of Query in English & german from elasticSearch_queries.py to systems.py > Ranker >rank_publication
+- Translation of Query in English & german from elasticSearch_queries.py to systems.py > Ranker >rank_publication
 
 
 ___________________________________________________________________________________________________________________________
