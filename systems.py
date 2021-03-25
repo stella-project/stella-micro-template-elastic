@@ -5,14 +5,12 @@ from elasticsearch import Elasticsearch, helpers
 
 
 def load_json(directory, id_field):
-    print("test: load json")
     for path, subdir, file in os.walk(directory):
         extensions = tuple([".jsonl"])
         files = [f for f in file if f.endswith(extensions)]
         for f in files:
             with jsonlines.open(os.path.join(path, f), 'r') as reader:
-                for obj in reader:
-                    print("test: loadjson2")   
+                for obj in reader:  
                     yield {
                         '_op_type': 'index',
                         '_id': obj[id_field],
@@ -20,15 +18,12 @@ def load_json(directory, id_field):
 
 
 def load_settings(settings_path):
-    print("test: loadsettings")
     with open(settings_path) as json_file:
         return json.load(json_file)
 
 
 class Ranker(object):
-    print("test: start ranker")
     def __init__(self):
-        print("test: pathsettings")
         self.INDEX = 'idx'
         self.index_settings_path = os.path.join('index_settings', 'test_settings.json')
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
@@ -38,7 +33,6 @@ class Ranker(object):
         return self.es.info(), 200
 
     def index(self):
-        print("test: index creation")
         if self.es.indices.exists(self.INDEX):
             self.es.indices.delete(index=self.INDEX)
         self.es.indices.create(index=self.INDEX, body=load_settings(self.index_settings_path))
@@ -63,7 +57,6 @@ class Ranker(object):
 
         itemlist = []
         start = page * rpp
-        print("test: query index")
         if query is not None:
 
             es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
