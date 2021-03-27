@@ -20,25 +20,22 @@
                     "type" : "stemmer",
                     "language" : "english"
                 },
-              "keyword_list": {
+                "keyword_list": {
                 "type": "keyword_marker",
                 "ignore_case": true,
                 "keywords": ["Vitamin D", "covid-19", "sars-cov-2", "sars-cov", "2019-ncov",
                          "united states", "united kingdom", "hong kong", "united arab emirates",
                          "non-social", "african-american",
                           "mrna ", "ace inhibitor", "enzyme inhibitors", "blood type", "angiotensin-converting", "clinical signs", "super spreaders", "hand sanitizer", "alcohol sanitizer"]
-                 },
-                "ngram_filter": {
-                    "type":     "ngram",
-                    "min_gram": 3,
-                    "max_gram": 3,
-                    "token_chars": [
-                        "letter",
-                        "punctuation",
-                        "symbol"
-                    ]
-                }
+                 }
+
             },
+                "tokenizer": {
+                    "comma": {
+                        "type": "pattern",
+                        "pattern": ","
+                    }
+                },
             "char_filter": {
                 "covid_char_filter": {
                 "type": "mapping",
@@ -50,7 +47,16 @@
                                 ]
                 }
              },
+
             "analyzer": {
+                "comma": {
+                    "type": "custom",
+                    "tokenizer": "comma"
+                },
+                "whitespace": {
+                    "type": "custom",
+                    "tokenizer": "whitespace"
+                },
                 "covid_analyzer": {
                     "type": "custom",
                     "tokenizer": "standard",
@@ -62,14 +68,6 @@
                                "asciifolding"
                                ],
                     "char_filter": ["covid_char_filter"]
-                },
-                "ngram_analyzer": {
-                    "type":      "custom",
-                    "tokenizer": "standard",
-                    "filter":   [
-                        "lowercase",
-                        "ngram_filter"
-                    ]
                 },
                 "query_analyzer":{
                     "type": "custom",
@@ -113,6 +111,14 @@
 
     "mappings": {
         "properties": {
+            "DBRECORDID": {
+                "type": "text",
+                "index": true
+            },
+            "LANGUAGE": {
+                "type": "text",
+                "index": true
+            },
             "TITLE": { 
                 "type": "text",
                 "fields": {
@@ -121,23 +127,76 @@
                         "analyzer": "covid_analyzer",
                         "similarity": "LMJelinekMercer_short"
                     },
-                    "ngram": { 
-                        "type":     "text",
-                        "analyzer": "ngram_analyzer",
-                        "similarity": "LMJelinekMercer_short"
-                    },
                     "keyword": { 
                         "type":     "keyword"
                     }
                 }
             },
-            "ABSTRACT": {
+            "TITLE_TOKENZ_GERMAN": {
                 "type": "text",
-                "analyzer": "covid_analyzer",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+
+            }, "TITLE_TOKENZ_SCI": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+
+            },
+            "ABSTRACT_TOKENZ_GERMAN": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+
+            },
+            "ABSTRACT_TOKENZ_SCI": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+
+            },
+            "KEYWORDS_TOKENZ": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+
+            },
+            "MESH_TOKENZ": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
                 "similarity": "DFR_similarity"
             },
+            "CHEM_TOKENZ": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+            },
+            "ABSTRACT": {
+                "type": "text",
+                "index": false
+            },
+            "MESH": {
+                "type": "text",
+                "index": false
+            },
+            "CHEM": {
+                "type": "text",
+                "index": false
+            },
+            "KEYWORDS": {
+                "type": "text",
+                "index": false
+            },
             "PUBLYEAR": {
-                "type": "text"
+                "type": "text",
+                "index": false
             },
             "query": {
                 "type": "text",
