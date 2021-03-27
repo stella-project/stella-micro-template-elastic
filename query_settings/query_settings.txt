@@ -1,0 +1,46 @@
+{
+            "query": {
+                "bool": {
+                    "should": [{
+                        "query_string": {
+                            "query": "query_tokenized_ori",
+                            "default_operator": "operator",
+                            "fields": ["TITLE_TOKENZ_SCI", "ABSTRACT_TOKENZ_SCI", "MESH_TOKENZ^5", "CHEM_TOKENZ^5",
+                                       "KEYWORDS_TOKENZ^5", "TITLE.keyword^8"],
+                            "analyzer": "comma"
+                            "fuzzy_transpositions": true,
+                            "fuzziness": "AUTO",
+                            "fuzzy_max_expansions": "5",
+                            "fuzzy_prefix_length": "0"
+                        }
+                    },
+
+                        {
+                            "query_string": {
+                                "query": "query_tokenized_eng",
+                                "default_operator": "operator",
+                                "fields": ["TITLE_TOKENZ_SCI", "ABSTRACT_TOKENZ_SCI", "MESH_TOKENZ^5", "CHEM_TOKENZ^5",
+                                           "KEYWORDS_TOKENZ^5", "TITLE.keyword^8"],
+                                "analyzer": "comma"
+                                "fuzzy_transpositions": true,
+                                "fuzziness": "AUTO",
+                                "fuzzy_max_expansions": "5",
+                                "fuzzy_prefix_length": "0"
+                            }
+                        },
+                        {
+                            "query_string": {
+                                "query": "query_tokenized_german",
+                                "default_operator": "operator",
+                                "fields": ["TITLE_TOKENZ_GERMAN", "ABSTRACT_TOKENZ_GERMAN"],
+                                "analyzer": "comma"
+                                "fuzzy_transpositions": true,
+                                "fuzziness": "AUTO",
+                                "fuzzy_max_expansions": "5",
+                                "fuzzy_prefix_length": "0"
+                            }}
+                    ]
+                }
+            }
+
+        }
