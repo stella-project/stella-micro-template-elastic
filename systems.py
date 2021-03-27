@@ -5,6 +5,7 @@ from elasticsearch import Elasticsearch, helpers
 import re
 from google_trans_new import google_translator
 import tokens_functions as tf
+from elasticsearch.client.ingest import IngestClient
 
 
 def load_json(directory, id_field):
@@ -43,8 +44,19 @@ def load_query_settings(query_settings_path, operator, query_tokenized_ori,
     # for i in f:
     #    result = re.sub(r'^"query": "query_tokenized_ori",', query_pattern, i)
     #    strings = strings + result
-    #return json.dumps(content,separators=None)
+    # return json.dumps(content,separators=None)
     return content
+
+
+def load_ingest_pipeline_settings(es, pipeline_settings_path):
+    p = IngestClient(es)
+    #content = json.loads(pipeline_settings_path)
+    #print(content.read())
+    with open(pipeline_settings_path) as json_file:
+        content = json.load(json_file)
+    p.put_pipeline(id='attachment', body=content)
+
+    return p
 
 class Ranker(object):
     print("test: start ranker")
@@ -52,8 +64,10 @@ class Ranker(object):
     def __init__(self):
         print("test: pathsettings")
         self.INDEX = 'idx'
-        self.index_settings_path = os.path.join('index_settings', 'test_settings.json')
+        self.index_settings_path = os.path.join('index_settings', 'test_settings_multilang.json')
         self.query_settings_path = os.path.join('query_settings', 'query_settings.txt')
+        self.pipeline_settings_path = os.path.join("pipeline_settings", "pipeline_settings.json")
+
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
         # self.documents_path = './data/livivo/documents'
         self.documents_path = './data/livivo/test'
@@ -65,10 +79,13 @@ class Ranker(object):
         print("test: index creation")
         if self.es.indices.exists(self.INDEX):
             self.es.indices.delete(index=self.INDEX)
+
+        load_ingest_pipeline_settings(self.es, self.pipeline_settings_path)
+
         self.es.indices.create(index=self.INDEX, body=load_settings(self.index_settings_path))
 
         for success, info in helpers.parallel_bulk(self.es, load_json(self.documents_path, 'DBRECORDID'),
-                                                   index=self.INDEX):
+                                                   index=self.INDEX, pipeline="attachment"):
             if not success:
                 return 'A document failed: ' + info, 400
         '''
@@ -90,8 +107,8 @@ class Ranker(object):
         print("test: query index")
         if query is not None:
             translator = google_translator()
-            operator = 'OR' ### Kritisch weil User potentiell mehrere operatoren kombiniren könnte
-            if ' AND ' in query and not ' OR ' in query: # wahrscheinlich nur query_string besser
+            operator = 'OR'  ### Kritisch weil User potentiell mehrere operatoren kombiniren könnte
+            if ' AND ' in query and not ' OR ' in query:  # wahrscheinlich nur query_string besser
                 operator = 'AND'
 
             query_eng = translator.translate(query, lang_tgt='en')

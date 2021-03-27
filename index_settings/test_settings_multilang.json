@@ -1,0 +1,234 @@
+{
+    "settings": {
+        "number_of_shards": 3,
+        "number_of_replicas": 0,
+
+        "analysis": {
+            "filter": {
+                "acronym": {
+                    "type": "word_delimiter",
+                    "catenate_all": true,
+                    "generate_word_parts": false,
+                    "generate_number_parts": false,
+                    "preserve_original": true
+                },
+                "my_snow":{
+                    "type": "snowball",
+                    "language": "English"
+                },
+                "english_stemmer" : {
+                    "type" : "stemmer",
+                    "language" : "english"
+                },
+                "german_stemmer": {
+                    "type": "stemmer",
+                    "language": "german"
+                },
+                "keyword_list": {
+                "type": "keyword_marker",
+                "ignore_case": true,
+                "keywords": ["Vitamin D", "covid-19", "sars-cov-2", "sars-cov", "2019-ncov",
+                         "united states", "united kingdom", "hong kong", "united arab emirates",
+                         "non-social", "african-american",
+                          "mrna ", "ace inhibitor", "enzyme inhibitors", "blood type", "angiotensin-converting", "clinical signs", "super spreaders", "hand sanitizer", "alcohol sanitizer"]
+                 }
+
+            },
+                "tokenizer": {
+                    "comma": {
+                        "type": "pattern",
+                        "pattern": ","
+                    }
+                },
+            "char_filter": {
+                "covid_char_filter": {
+                "type": "mapping",
+                            "mappings": [
+                                "Heterogeneous => test",
+                                "$=> dollar",
+                                "€=> euro",
+                                "£=> pound",
+                                "%=> percentage"
+                                ]
+                }
+             },
+
+            "analyzer": {
+                "comma": {
+                    "type": "custom",
+                    "tokenizer": "comma"
+                },
+                "whitespace": {
+                    "type": "custom",
+                    "tokenizer": "whitespace"
+                },
+                "english": {
+                    "type": "custom",
+                    "stopwords": "_english",
+                    "tokenizer": "standard",
+                    "filter": ["english_stemmer","lowercase","stop"],
+                    "char_filter": ["covid_char_filter"]
+                },
+                "german": {
+                    "type": "custom",
+                    "stopwords": "_german",
+                    "tokenizer": "standard",
+                    "filter": ["german_stemmer","lowercase","stop"]
+                },
+                "covid_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "stopwords": "_english",
+                    "filter": ["acronym",
+                               "lowercase",
+                                "keyword_list",
+                               "stop",
+                               "asciifolding"
+                               ],
+                    "char_filter": ["covid_char_filter"]
+                },
+                "query_analyzer":{
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": ["keyword_list",
+                               "stop",
+                               "asciifolding"
+                               ],
+                    "char_filter": ["covid_char_filter"]
+                    }
+                }
+        },
+    "similarity" : {
+               "BM25_similarity": {
+                    "type": "BM25",
+                    "k1": "1.2",
+                    "b": "0.75"
+                  },
+                  "DFR_similarity": {
+                    "type": "DFR",
+                    "basic_model": "g",
+                    "after_effect": "b",
+                    "normalization": "z" 
+                  },
+                  "LMJelinekMercer_short": {
+                    "type": "LMJelinekMercer",
+                    "lambda": "0.1"
+                  },
+                 "LMJelinekMercer_long": {
+                    "type": "LMJelinekMercer",
+                    "lambda": "0.7" 
+                  },
+                "TFIDF": {
+                    "type": "scripted",
+                    "script": {
+                    "source": "double tf = Math.sqrt(doc.freq); double idf = Math.log((field.docCount+1.0)/(term.docFreq+1.0)) + 1.0; double norm = 1/Math.sqrt(doc.length); return query.boost * tf * idf * norm;"
+                    }
+                }
+        }
+    },
+
+    "mappings": {
+        "properties": {
+            "DBRECORDID": {
+                "type": "text",
+                "index": true
+            },
+            "LANGUAGE": {
+                "type": "text",
+                "index": true
+            },
+            "TITLE": { 
+                "type": "text",
+                "fields": {
+                    "analysis": { 
+                        "type":     "text",
+                        "analyzer": "covid_analyzer",
+                        "similarity": "LMJelinekMercer_short"
+                    },
+                    "keyword": { 
+                        "type":     "keyword"
+                    }
+                }
+            },
+            "TITLE_EN" :{
+                "type": "text",
+                "analyzer": "english"
+            },
+            "TITLE_GER": {
+                "type": "text",
+                "analyzer": "german"
+            },
+            "TITLE_TOKENZ_GERMAN": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+            },
+            "TITLE_TOKENZ_SCI": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+            },
+            "ABSTRACT_TOKENZ_GERMAN": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+
+            },
+            "ABSTRACT_TOKENZ_SCI": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+
+            },
+            "KEYWORDS_TOKENZ": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+
+            },
+            "MESH_TOKENZ": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+            },
+            "CHEM_TOKENZ": {
+                "type": "text",
+                "index": true,
+                "analyzer": "comma",
+                "similarity": "DFR_similarity"
+            },
+            "ABSTRACT": {
+                "type": "text",
+                "analyzer": "covid_analyzer",
+                "similarity": "DFR_similarity",
+                "index": false
+            },
+            "MESH": {
+                "type": "text",
+                "index": false
+            },
+            "CHEM": {
+                "type": "text",
+                "index": false
+            },
+            "KEYWORDS": {
+                "type": "text",
+                "index": false
+            },
+            "PUBLYEAR": {
+                "type": "text",
+                "index": false
+            },
+            "query": {
+                "type": "text",
+                "analyzer": "query_analyzer"
+            }
+        } 
+    } 
+}
