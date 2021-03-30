@@ -63,8 +63,8 @@ class Ranker(object):
         self.pipeline_settings_path = os.path.join("pipeline_settings", "pipeline_settings.json")
 
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
-        # self.documents_path = './data/livivo/documents'
-        self.documents_path = './data/livivo/test'
+        self.documents_path = './data/livivo/documents'
+        #self.documents_path = './data/livivo/test'
 
     def test(self):
         return self.es.info(), 200

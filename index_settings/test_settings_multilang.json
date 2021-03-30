@@ -225,6 +225,10 @@
                 "type": "text",
                 "index": false
             },
+            "PUBLDATE": {
+                "type": "text",
+                "index": false
+            },
             "query": {
                 "type": "text",
                 "analyzer": "query_analyzer"
