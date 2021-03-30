@@ -2,6 +2,10 @@ import os
 import json
 import jsonlines
 from elasticsearch import Elasticsearch, helpers
+import re
+from google_trans_new import google_translator
+import tokens_functions as tf
+from elasticsearch.client.ingest import IngestClient
 
 
 def load_json(directory, id_field):
@@ -22,12 +26,45 @@ def load_settings(settings_path):
         return json.load(json_file)
 
 
+def load_query_settings(query_settings_path, operator, query_tokenized_ori,
+                        query_tokenized_eng, query_tokenized_german):
+    f = open("query_settings\query_settings.txt", "r+", encoding="utf-8")
+    content = f.read()
+    content = content.replace('"query": "query_tokenized_ori",', '"query": "' + query_tokenized_ori + '",')
+    content = content.replace('"query": "query_tokenized_eng",', '"query": "' + query_tokenized_eng + '",')
+    content = content.replace('"query": "query_tokenized_german",', '"query": "' + query_tokenized_german + '",')
+    content = content.replace('"default_operator": "operator",', '"default_operator": "' + operator + '",')
+    print(content)
+    # query_pattern = '"query": ' + query + ","
+
+    # strings = ""
+    # for i in f:
+    #    result = re.sub(r'^"query": "query_tokenized_ori",', query_pattern, i)
+    #    strings = strings + result
+    # return json.dumps(content,separators=None)
+    return content
+
+
+def load_ingest_pipeline_settings(es, pipeline_settings_path):
+    p = IngestClient(es)
+    #content = json.loads(pipeline_settings_path)
+    #print(content.read())
+    with open(pipeline_settings_path) as json_file:
+        content = json.load(json_file)
+    p.put_pipeline(id='attachment', body=content)
+
+    return p
+
 class Ranker(object):
     def __init__(self):
         self.INDEX = 'idx'
-        self.index_settings_path = os.path.join('index_settings', 'test_settings.json')
+        self.index_settings_path = os.path.join('index_settings', 'test_settings_multilang.json')
+        self.query_settings_path = os.path.join('query_settings', 'query_settings.txt')
+        self.pipeline_settings_path = os.path.join("pipeline_settings", "pipeline_settings.json")
+
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
-        self.documents_path = './data/livivo/documents'
+        # self.documents_path = './data/livivo/documents'
+        self.documents_path = './data/livivo/test'
 
     def test(self):
         return self.es.info(), 200
@@ -35,10 +72,13 @@ class Ranker(object):
     def index(self):
         if self.es.indices.exists(self.INDEX):
             self.es.indices.delete(index=self.INDEX)
+
+        load_ingest_pipeline_settings(self.es, self.pipeline_settings_path)
+
         self.es.indices.create(index=self.INDEX, body=load_settings(self.index_settings_path))
 
         for success, info in helpers.parallel_bulk(self.es, load_json(self.documents_path, 'DBRECORDID'),
-                                                   index=self.INDEX):
+                                                   index=self.INDEX, pipeline="attachment"):
             if not success:
                 return 'A document failed: ' + info, 400
         '''
@@ -58,13 +98,31 @@ class Ranker(object):
         itemlist = []
         start = page * rpp
         if query is not None:
+            translator = google_translator()
+            operator = 'OR'  ### Kritisch weil User potentiell mehrere operatoren kombiniren könnte
+            if ' AND ' in query and not ' OR ' in query:  # wahrscheinlich nur query_string besser
+                operator = 'AND'
 
+            query_eng = translator.translate(query, lang_tgt='en')
+            query_de = translator.translate(query, lang_tgt='de')
+
+            if type(query_de) == list:
+                query_de = query_de[1]
+
+            query_tokenized_german = tf.tokenize_string_german(query_de)
+            query_tokenized_ori = tf.tokenize_string_sci(query)
+            query_tokenized_eng = tf.tokenize_string_sci(query_eng)
+
+            print(query_tokenized_eng)
+            print(query_tokenized_german)
+            print(query_tokenized_ori)
             es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
             result = es.search(index=self.INDEX,
                                from_=start,
                                size=rpp,
-                               body={"query": {"multi_match": {"query": query, "fields": ["TITLE", 'ABSTRACT']}}})
+                               body=load_query_settings(self.query_settings_path, operator, query_tokenized_ori,
+                                                        query_tokenized_eng, query_tokenized_german))
 
             for res in result["hits"]["hits"]:
                 try:
@@ -134,7 +192,6 @@ class Recommender(object):
                                    from_=start,
                                    size=rpp,
                                    body={"query": {"multi_match": {"query": title, "fields": ["title", 'abstract']}}})
-
 
             for res in result["hits"]["hits"]:
                 try:
