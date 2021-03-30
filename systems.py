@@ -22,7 +22,7 @@ def load_json(directory, id_field):
 
 
 def load_settings(settings_path):
-    with open(settings_path) as json_file:
+    with open(settings_path, encoding='utf-8') as json_file:
         return json.load(json_file)
 
 
@@ -54,6 +54,10 @@ def load_ingest_pipeline_settings(es, pipeline_settings_path):
     p.put_pipeline(id='attachment', body=content)
 
     return p
+
+#def preprocessing(documents_path):
+#    with open(documents_path) as json_file:
+#        return json.load(json_file)
 
 class Ranker(object):
     def __init__(self):
