@@ -34,7 +34,7 @@ def load_query_settings(query_settings_path, operator, query_tokenized_ori,
     content = content.replace('"query": "query_tokenized_eng",', '"query": "' + query_tokenized_eng + '",')
     content = content.replace('"query": "query_tokenized_german",', '"query": "' + query_tokenized_german + '",')
     content = content.replace('"default_operator": "operator",', '"default_operator": "' + operator + '",')
-    print(content)
+    #print(content)
     # query_pattern = '"query": ' + query + ","
 
     # strings = ""
@@ -113,9 +113,9 @@ class Ranker(object):
             query_tokenized_ori = tf.tokenize_string_sci(query)
             query_tokenized_eng = tf.tokenize_string_sci(query_eng)
 
-            print(query_tokenized_eng)
-            print(query_tokenized_german)
-            print(query_tokenized_ori)
+            #print(query_tokenized_eng)
+            #print(query_tokenized_german)
+            #print(query_tokenized_ori)
             es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
             result = es.search(index=self.INDEX,
