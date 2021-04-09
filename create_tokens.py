@@ -62,48 +62,48 @@ def main():
 
 
     for f in os.listdir("data/filtered_documents"):
+        if f.endswith('.jsonl'):
+            df = pd.read_json("data/filtered_documents/" + f, lines=True, orient="values", encoding="UTF-8")
+            df.fillna('', inplace=True)
 
-        df = pd.read_json("data/filtered_documents/" + f, lines=True, orient="values", encoding="UTF-8")
-        df.fillna('', inplace=True)
+            # print(df[0:5])
 
-        # print(df[0:5])
+            german_mask = df['LANGUAGE'] == 'ger'
+            else_mask = (df['LANGUAGE'] != 'ger') | (df['LANGUAGE'] == '')
 
-        german_mask = df['LANGUAGE'] == 'ger'
-        else_mask = (df['LANGUAGE'] != 'ger') | (df['LANGUAGE'] == '')
+            # TITLE
+            df['TITLE_TOKENZ_GERMAN'] = df.loc[german_mask, 'TITLE']
+            df.loc[german_mask, 'TITLE_TOKENZ_GERMAN'] = df.loc[german_mask, 'TITLE_TOKENZ_GERMAN'].apply(
+                tokenize_string_german)
+            print("title_tokenz_german")
 
-        # TITLE
-        df['TITLE_TOKENZ_GERMAN'] = df.loc[german_mask, 'TITLE']
-        df.loc[german_mask, 'TITLE_TOKENZ_GERMAN'] = df.loc[german_mask, 'TITLE_TOKENZ_GERMAN'].apply(
-            tokenize_string_german)
-        print("title_tokenz_german")
+            df['TITLE_TOKENZ_SCI'] = df.loc[else_mask, 'TITLE']
+            df.loc[else_mask, 'TITLE_TOKENZ_SCI'] = df.loc[else_mask, 'TITLE_TOKENZ_SCI'].apply(tokenize_string_sci)
+            print("title_tokenz_sci")
 
-        df['TITLE_TOKENZ_SCI'] = df.loc[else_mask, 'TITLE']
-        df.loc[else_mask, 'TITLE_TOKENZ_SCI'] = df.loc[else_mask, 'TITLE_TOKENZ_SCI'].apply(tokenize_string_sci)
-        print("title_tokenz_sci")
+            # ABSTRACT
+            df['ABSTRACT_TOKENZ_GERMAN'] = df.loc[german_mask, 'ABSTRACT']
+            df.loc[german_mask, 'ABSTRACT_TOKENZ_GERMAN'] = df.loc[german_mask, 'ABSTRACT_TOKENZ_GERMAN'].apply(
+                tokenize_string_german)
+            print("abstract_tokenz_german")
 
-        # ABSTRACT
-        df['ABSTRACT_TOKENZ_GERMAN'] = df.loc[german_mask, 'ABSTRACT']
-        df.loc[german_mask, 'ABSTRACT_TOKENZ_GERMAN'] = df.loc[german_mask, 'ABSTRACT_TOKENZ_GERMAN'].apply(
-            tokenize_string_german)
-        print("abstract_tokenz_german")
+            df['ABSTRACT_TOKENZ_SCI'] = df.loc[else_mask, 'ABSTRACT']
+            df.loc[else_mask, 'ABSTRACT_TOKENZ_SCI'] = df.loc[else_mask, 'ABSTRACT_TOKENZ_SCI'].apply(tokenize_string_sci)
+            print("abstract_tokenz_sci")
 
-        df['ABSTRACT_TOKENZ_SCI'] = df.loc[else_mask, 'ABSTRACT']
-        df.loc[else_mask, 'ABSTRACT_TOKENZ_SCI'] = df.loc[else_mask, 'ABSTRACT_TOKENZ_SCI'].apply(tokenize_string_sci)
-        print("abstract_tokenz_sci")
+            df['KEYWORDS_TOKENZ'] = df['KEYWORDS'].apply(tokenize_string_sci)
+            print("keywords")
 
-        df['KEYWORDS_TOKENZ'] = df['KEYWORDS'].apply(tokenize_string_sci)
-        print("keywords")
+            df['MESH_TOKENZ'] = df['MESH'].apply(tokenize_string_sci)
+            print("mesh_to")
 
-        df['MESH_TOKENZ'] = df['MESH'].apply(tokenize_string_sci)
-        print("mesh_to")
+            df['CHEM_TOKENZ'] = df['CHEM'].apply(tokenize_string_sci)
+            print("chem_to")
 
-        df['CHEM_TOKENZ'] = df['CHEM'].apply(tokenize_string_sci)
-        print("chem_to")
+            df.fillna('', inplace=True)
 
-        df.fillna('', inplace=True)
-
-        df.to_json("data/test/" + f, orient="records", index=True, lines=True, force_ascii=False)
-        # df.to_csv(f"tokenz_german_and_sci.csv", index=False)
+            df.to_json("data/test/" + f, orient="records", index=True, lines=True, force_ascii=False)
+            # df.to_csv(f"tokenz_german_and_sci.csv", index=False)
 
 if __name__ == '__main__':
     main()
