@@ -6,6 +6,8 @@ import re
 from google_trans_new import google_translator
 import tokens_functions as tf
 from elasticsearch.client.ingest import IngestClient
+import concat_filtered
+import create_tokens
 
 
 def load_json(directory, id_field):
@@ -55,10 +57,6 @@ def load_ingest_pipeline_settings(es, pipeline_settings_path):
 
     return p
 
-#def preprocessing(documents_path):
-#    with open(documents_path) as json_file:
-#        return json.load(json_file)
-
 class Ranker(object):
     def __init__(self):
         self.INDEX = 'idx'
@@ -67,13 +65,16 @@ class Ranker(object):
         self.pipeline_settings_path = os.path.join("pipeline_settings", "pipeline_settings.json")
 
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
-        self.documents_path = './data/livivo/documents'
-        #self.documents_path = './data/livivo/test'
+        #self.documents_path = './data/livivo/documents'
+        self.documents_path = './data/test'
+        #self.documents_path = './data/preprocessed_docs/*'
 
     def test(self):
         return self.es.info(), 200
 
     def index(self):
+        concat_filtered.main()
+        create_tokens.main()
         if self.es.indices.exists(self.INDEX):
             self.es.indices.delete(index=self.INDEX)
 
