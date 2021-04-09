@@ -61,9 +61,9 @@ def main():
     print("Starting create_tokens.py")
 
 
-    for f in os.listdir("data/filtered_documents"):
+    for f in os.listdir("prep_data/filtered_documents"):
         if f.endswith('.jsonl'):
-            df = pd.read_json("data/filtered_documents/" + f, lines=True, orient="values", encoding="UTF-8")
+            df = pd.read_json("prep_data/filtered_documents/" + f, lines=True, orient="values", encoding="UTF-8")
             df.fillna('', inplace=True)
 
             # print(df[0:5])
@@ -102,7 +102,7 @@ def main():
 
             df.fillna('', inplace=True)
 
-            df.to_json("data/test/" + f, orient="records", index=True, lines=True, force_ascii=False)
+            df.to_json("prep_data/test/" + f, orient="records", index=True, lines=True, force_ascii=False)
             # df.to_csv(f"tokenz_german_and_sci.csv", index=False)
 
 if __name__ == '__main__':

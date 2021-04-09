@@ -38,7 +38,7 @@ def main():
 
             #df = df.append(df_local.loc[:, cols], ignore_index=True)
             #df.reset_index(drop=True, inplace=True)
-            df_local.to_json(f"data/filtered_documents/{f}", orient="records",  index=True, lines=True, force_ascii=False)
+            df_local.to_json(f"prep_data/filtered_documents/{f}", orient="records",  index=True, lines=True, force_ascii=False)
 
 if __name__ == '__main__':
     main()

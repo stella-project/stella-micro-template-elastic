@@ -66,7 +66,7 @@ class Ranker(object):
 
         self.es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
         #self.documents_path = './data/livivo/documents'
-        self.documents_path = './data/test'
+        self.documents_path = './prep_data/test'
         #self.documents_path = './data/preprocessed_docs/*'
 
     def test(self):
