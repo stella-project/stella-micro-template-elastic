@@ -30,7 +30,7 @@ def load_settings(settings_path):
 
 def load_query_settings(query_settings_path, operator, query_tokenized_ori,
                         query_tokenized_eng, query_tokenized_german):
-    f = open("query_settings\query_settings.txt", "r+", encoding="utf-8")
+    f = open("./query_settings/query_settings.txt", "r+", encoding="utf-8")
     content = f.read()
     content = content.replace('"query": "query_tokenized_ori",', '"query": "' + query_tokenized_ori + '",')
     content = content.replace('"query": "query_tokenized_eng",', '"query": "' + query_tokenized_eng + '",')
