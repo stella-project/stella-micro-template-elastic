@@ -111,85 +111,88 @@ def prettify_v2(x):
     return x.translate(x.maketrans("", "", "[]'\""))
     # return x.replace("[", "").replace("]", "").replace("'", "").replace('"', "")
 
-def main():
+def main(f):
 
-    for f in os.listdir("data/livivo/documents"):
-        df_chunks = pd.read_json(path_or_buf=f"data/livivo/documents/{f}", lines=True, chunksize=10000) # increase Chunksize to atleast 100 000 on the VM
-        
-        for df in df_chunks:
-            cols = ['DBRECORDID', 'TITLE', 'ABSTRACT', 'LANGUAGE', 'MESH', 'CHEM', 'KEYWORDS']
-            if 'MESH' not in df.columns:
-                df['MESH'] = ""
-            if 'CHEM' not in df.columns:
-                df['CHEM'] = ""
-            if 'KEYWORDS' not in df.columns:
-                df['KEYWORDS'] = ""
+    df_test = pd.DataFrame()
+    df_chunks = pd.read_json(path_or_buf=f"data/livivo/documents/{f}", lines=True, chunksize=100000)
 
-            df = df[cols]
-            df.fillna('', inplace=True)
+    for df in df_chunks:
+        cols = ['DBRECORDID', 'TITLE', 'ABSTRACT', 'LANGUAGE', 'MESH', 'CHEM', 'KEYWORDS']
+        if 'ABSTRACT' not in df.columns:
+            df['ABSTRACT'] = ""
+        if 'MESH' not in df.columns:
+            df['MESH'] = ""
+        if 'CHEM' not in df.columns:
+            df['CHEM'] = ""
+        if 'KEYWORDS' not in df.columns:
+            df['KEYWORDS'] = ""
 
-            df['TITLE'] = df['TITLE'].apply(prettify)
-            df['ABSTRACT'] = df['ABSTRACT'].apply(prettify)
-            df['LANGUAGE'] = df['LANGUAGE'].apply(prettify)
+        df = df[cols]
+        df.fillna('', inplace=True)
 
-            df['MESH'] = df['MESH'].apply(prettify_v2)
-            df['CHEM'] = df['CHEM'].apply(prettify_v2)
-            df['KEYWORDS'] = df['KEYWORDS'].apply(prettify_v2)
+        df['TITLE'] = df['TITLE'].apply(prettify)
+        df['ABSTRACT'] = df['ABSTRACT'].apply(prettify)
+        df['LANGUAGE'] = df['LANGUAGE'].apply(prettify)
 
-            #
-            # df = df.iloc[:10000]
+        df['MESH'] = df['MESH'].apply(prettify_v2)
+        df['CHEM'] = df['CHEM'].apply(prettify_v2)
+        df['KEYWORDS'] = df['KEYWORDS'].apply(prettify_v2)
 
-            # TITLE
-            df['TITLE_TOKENZ_GERMAN'] = ""
-            df['TITLE_TOKENZ_SCI'] = ""
-            df['ABSTRACT_TOKENZ_GERMAN'] = ""
-            df['ABSTRACT_TOKENZ_SCI'] = ""
-            df['KEYWORDS_TOKENZ'] = ""
-            df['MESH_TOKENZ'] = ""
-            df['CHEM_TOKENZ'] = ""
+        # TITLE
+        df['TITLE_TOKENZ_GERMAN'] = ""
+        df['TITLE_TOKENZ_SCI'] = ""
+        df['ABSTRACT_TOKENZ_GERMAN'] = ""
+        df['ABSTRACT_TOKENZ_SCI'] = ""
+        df['KEYWORDS_TOKENZ'] = ""
+        df['MESH_TOKENZ'] = ""
+        df['CHEM_TOKENZ'] = ""
 
-            numpy_df = df.to_numpy()
+        numpy_df = df.to_numpy()
 
-            german_mask_numpy = numpy_df[:, 3] == "ger"
+        german_mask_numpy = numpy_df[:, 3] == "ger"
 
-            else_mask_numpy = (numpy_df[:, 3] != "ger") | (numpy_df[:, 3] == "")
+        else_mask_numpy = (numpy_df[:, 3] != "ger") | (numpy_df[:, 3] == "")
 
-            # TITLE
-            numpy_df[german_mask_numpy, 7] = np.apply_along_axis(tokenize_german_numpy, 0, numpy_df[german_mask_numpy, 1])
-            print(datetime.datetime.now(), "  german title")
-            numpy_df[else_mask_numpy, 8] = np.apply_along_axis(tokenize_sci_numpy, 0, numpy_df[else_mask_numpy, 1])
-            print(datetime.datetime.now(), "  sci title")
+        # TITLE
+        numpy_df[german_mask_numpy, 7] = np.apply_along_axis(tokenize_german_numpy, 0, numpy_df[german_mask_numpy, 1])
+        #print(datetime.datetime.now(), "  german title")
+        numpy_df[else_mask_numpy, 8] = np.apply_along_axis(tokenize_sci_numpy, 0, numpy_df[else_mask_numpy, 1])
+        #print(datetime.datetime.now(), "  sci title")
 
-            # ABSTRACT
-            numpy_df[german_mask_numpy, 9] = np.apply_along_axis(tokenize_german_numpy, 0, numpy_df[german_mask_numpy, 2])
-            print(datetime.datetime.now(), "  german abstract")
+        # ABSTRACT
+        numpy_df[german_mask_numpy, 9] = np.apply_along_axis(tokenize_german_numpy, 0, numpy_df[german_mask_numpy, 2])
+        #print(datetime.datetime.now(), "  german abstract")
 
-            numpy_df[else_mask_numpy, 10] = np.apply_along_axis(tokenize_sci_numpy, 0, numpy_df[else_mask_numpy, 2])
-            print(datetime.datetime.now(), "  sci abstract")
+        numpy_df[else_mask_numpy, 10] = np.apply_along_axis(tokenize_sci_numpy, 0, numpy_df[else_mask_numpy, 2])
+        #print(datetime.datetime.now(), "  sci abstract")
 
-            # KEYWORDS_TOKENZ
-            numpy_df[:, 11] = np.apply_along_axis(tokenize_sci_numpy, 0, numpy_df[:, 6])
-            print(datetime.datetime.now(), "  keywords")
+        # KEYWORDS_TOKENZ
+        numpy_df[:, 11] = np.apply_along_axis(tokenize_sci_numpy, 0, numpy_df[:, 6])
+        #print(datetime.datetime.now(), "  keywords")
 
-            # MESH_TOKENZ
-            numpy_df[:, 12] = np.apply_along_axis(tokenize_sci_numpy, 0, numpy_df[:, 4])
-            print(datetime.datetime.now(), "  mesh")
+        # MESH_TOKENZ
+        numpy_df[:, 12] = np.apply_along_axis(tokenize_sci_numpy, 0, numpy_df[:, 4])
+        #print(datetime.datetime.now(), "  mesh")
 
-            # CHEM_TOKENZ
-            numpy_df[:, 13] = np.apply_along_axis(tokenize_sci_numpy, 0, numpy_df[:, 5])
-            print(datetime.datetime.now(), "  chem")
+        # CHEM_TOKENZ
+        numpy_df[:, 13] = np.apply_along_axis(tokenize_sci_numpy, 0, numpy_df[:, 5])
+        #print(datetime.datetime.now(), "  chem")
 
-            new_df = pd.DataFrame(numpy_df, columns=df.columns)
+        new_df = pd.DataFrame(numpy_df, columns=df.columns)
+        df_test = df_test.append(new_df, ignore_index=True)
+    #print(len((df_test.index)))
+    return df_test
+
             #print(df.columns)
             #new_df = new_df.drop(["AUTHOR", "INSTITUTION", "PUBLISHER", "SOURCE", "PUBLDATE", "PUBLYEAR", "PUBLPLACE", "PUBLCOUNTRY","IDENTIFIER", "EISSN", "PISSN", "DOI", "VOLUME", "ISSUE", "PAGES", "ISSN", "DATABASE", "DOCUMENTURL"], axis=1)
         # FOR TEST ONLY REMOVE THE BREAK!!
         #break
         # if file does not exist write header
-            f = f.replace(".jsonl", ".csv")
-            if os.path.isfile(f"prep_data/filtered_documents/{f}"):
-                new_df.to_csv(f"prep_data/filtered_documents/{f}", mode='a', header=False, index=False)
-            else:  # else it exists so append without writing the header
-                new_df.to_csv(f"prep_data/filtered_documents/{f}", header=df.columns, index=False)
+            #f = f.replace(".jsonl", ".csv")
+            #if os.path.isfile(f"data/livivo/filtered_documents/{f}"):
+            #    new_df.to_csv(f"data/livivo/filtered_documents/{f}", mode='a', header=False, index=False)
+            #else:  # else it exists so append without writing the header
+            #    new_df.to_csv(f"data/livivo/filtered_documents/{f}", header=df.columns, index=False)
 
 if __name__ == '__main__':
     main()
